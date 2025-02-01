@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit PDF</title>
+</head>
+<body>
+    <h1>Edit PDF</h1>
+    <!-- ▼▼▼ PASTE THE MODIFIED FORM HERE ▼▼▼ -->
+    <form method="POST" enctype="multipart/form-data">
+        <label for="pdf_name">PDF Name:</label>
+        <input type="text" id="pdf_name" name="pdf_name" value="{{ pdf.name }}" required>
+        
+        <label>PDF Links:</label>
+        <div id="link-container">
+            {% for link in pdf.links %}
+            <input type="url" name="pdf_link" value="{{ link }}" placeholder="Enter link">
+            {% endfor %}
+        </div>
+        <button type="button" onclick="addLinkField()">Add Another Link</button>
+
+        <!-- File upload section -->
+        <label for="pdf_file">Upload New PDF (optional):</label>
+        <input type="file" id="pdf_file" name="pdf_file" accept="application/pdf">
+        {% if pdf.file_id %}
+        <p>Current file: <a href="/download/{{ pdf.file_id }}">Download</a></p>
+        {% endif %}
+
+        <br><br>
+        <button type="submit">Save Changes</button>
+    </form>
+    <!-- ▲▲▲ END OF FORM ▲▲▲ -->
+    
+    <a href="/">Back to Home</a>
+
+    <!-- Keep the existing script -->
+    <script>
+    function addLinkField() {
+        const container = document.getElementById('link-container');
+        const input = document.createElement('input');
+        input.type = 'url';
+        input.name = 'pdf_link';
+        input.placeholder = 'Enter link';
+        container.appendChild(input);
+    }
+    </script>
+</body>
+</html>

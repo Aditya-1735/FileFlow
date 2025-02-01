@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Manager</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>PDF Manager</h1>
+        <a href="/upload" class="btn-primary">Add New PDF</a>
+        
+        <table class="pdf-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Links & Files</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pdf in pdfs %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ pdf.name }}</td>
+                    <td>
+                        {% if pdf.links %}
+                        <ul>
+                            {% for link in pdf.links %}
+                            <li><a href="{{ link }}" target="_blank">{{ link }}</a></li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        {% if pdf.file_id %}
+                        <a href="/download/{{ pdf.file_id }}" class="btn-primary">Download PDF</a>
+                        {% endif %}
+                    </td>
+                    <td class="action-links">
+                        <a href="/edit/{{ pdf._id }}">Edit</a>
+                        <form action="/delete/{{ pdf._id }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn-primary" style="background-color: #e53e3e;">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
