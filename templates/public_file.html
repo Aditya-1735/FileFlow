@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ pdf.name }} - FileFlow</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="app-header">
+        <div class="app-logo">
+            <div class="app-logo-icon">🗂️</div>
+            <div class="app-logo-text">FileFlow</div>
+        </div>
+        <div class="auth-buttons">
+            <a href="{{ url_for('index') }}" class="btn-primary">Home</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="public-view-header">
+            <h1>{{ pdf.name }}</h1>
+            <p class="public-description">{{ pdf.description or 'No description' }}</p>
+            <p class="shared-by">Shared by: {{ owner_username }}</p>
+        </div>
+                
+        <div class="file-details">
+            {% if pdf.file_id %}
+            <div class="download-section">
+                <h3>Download File</h3>
+                <a href="{{ url_for('public_download', file_id=pdf.file_id) }}" class="btn-primary">
+                    <svg viewBox="0 0 24 24" width="24" height="24" style="margin-right: 8px;">
+                        <path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/>
+                    </svg>
+                    Download File
+                </a>
+            </div>
+            {% endif %}
+            
+            {% if pdf.links %}
+            <div class="links-section">
+                <h3>Related Links</h3>
+                <ul class="public-link-list">
+                    {% for link in pdf.links %}
+                    <li><a href="{{ link }}" target="_blank">{{ link }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

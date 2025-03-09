@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | FileFlow</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="app-header">
+            <div class="app-logo">
+                <div class="app-logo-icon">🗂️</div>
+                <div class="app-logo-text">FileFlow</div>
+            </div>
+        </div>
+
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="form-container">
+            <h1 class="form-title">Login to FileFlow</h1>
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <div class="form-group">
+                    <label class="form-label" for="username">Username:</label>
+                    <input type="text" class="form-input" id="username" name="username" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password:</label>
+                    <input type="password" class="form-input" id="password" name="password" required>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">Login</button>
+                </div>
+            </form>
+            
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

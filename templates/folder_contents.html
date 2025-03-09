@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ folder.name }} - FileFlow</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="app-header">
+        <div class="app-logo">
+            <div class="app-logo-icon">🗂️</div>
+            <div class="app-logo-text">FileFlow</div>
+        </div>
+        <div class="auth-buttons">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('auth.logout') }}" class="btn-primary">Logout</a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn-primary">Login</a>
+                <a href="{{ url_for('auth.register') }}" class="btn-primary">Register</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    
+    <div class="container">
+        <div class="folder-header">
+            <h1>Folder: {{ folder.name }}</h1>
+            <p>{{ folder.description or 'No description' }}</p>
+            
+            <div class="folder-actions">
+                <a href="{{ url_for('edit_folder', folder_id=folder._id) }}" class="btn-secondary">Edit Folder</a>
+                <form action="{{ url_for('delete_folder', folder_id=folder._id) }}" method="POST" class="inline-form" onsubmit="return confirm('Are you sure you want to delete this folder?');">
+                    <button type="submit" class="btn-danger">Delete Folder</button>
+                </form>
+                
+                {% if folder.is_global %}
+                <div class="share-link-container">
+                    <input type="text" id="shareLink" value="{{ url_for('public_folder_view', folder_id=folder._id, _external=True) }}" readonly>
+                    <button onclick="copyShareLink()" class="btn-secondary">Copy Public Link</button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="folder-content">
+            <h2>Files in this Folder</h2>
+            
+            {% if pdfs|length == 0 %}
+            <div class="empty-state">
+                <p>This folder is empty</p>
+                <a href="{{ url_for('upload') }}" class="btn-primary">Upload a File</a>
+            </div>
+            {% else %}
+            <table class="pdf-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Links</th>
+                        <th>File</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pdf in pdfs %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ pdf.name }}</td>
+                        <td class="description-cell">{{ pdf.description|default("No description", true)|truncate(40) }}</td>
+                        <td>
+                            {% if pdf.links %}
+                            <ul class="link-list">
+                                {% for link in pdf.links %}
+                                <li><a href="{{ link }}" target="_blank">{{ link|truncate(30) }}</a></li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </td>
+                        <td class="download-column">
+                            {% if pdf.file_id %}
+                            <a href="{{ url_for('download', file_id=pdf.file_id) }}" class="download-icon">Download</a>
+                            {% endif %}
+                        </td>
+                        <td class="actions-column">
+                            <a href="{{ url_for('edit', pdf_id=pdf._id) }}" class="btn-small">Edit</a>
+                            <form action="{{ url_for('delete', pdf_id=pdf._id) }}" method="POST" class="inline-form" onsubmit="return confirm('Are you sure you want to delete this file?');">
+                                <button type="submit" class="btn-small btn-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+        
+        <a href="{{ url_for('index') }}" class="back-link">&larr; Back to Home</a>
+    </div>
+    
+    <script>
+    function copyShareLink() {
+        var copyText = document.getElementById("shareLink");
+        copyText.select();
+        document.execCommand("copy");
+        alert("Share link copied to clipboard!");
+    }
+    </script>
+    <script src="/static/theme.js"></script>
+</body>
+</html>

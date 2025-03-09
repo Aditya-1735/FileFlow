@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit FILE</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h1 class="form-title">Edit FILE</h1>
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label class="form-label" for="pdf_name">PDF Name:</label>
+                    <input type="text" class="form-input" id="pdf_name" name="pdf_name" value="{{ pdf.name }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="description">Description:</label>
+                    <textarea 
+                        class="form-input" 
+                        id="description" 
+                        name="description" 
+                        rows="2"
+                        placeholder="Add a brief description..."
+                    >{{ pdf.description if pdf.description else '' }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="folder_id">Folder (optional):</label>
+                    <select class="form-input" id="folder_id" name="folder_id">
+                        <option value="">No Folder</option>
+                        {% for folder in folders %}
+                        <option value="{{ folder._id }}" 
+                            {{ 'selected' if pdf.folder_id == folder._id }}>
+                            {{ folder.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">PDF Links:</label>
+                    <div id="link-container">
+                        {% for link in pdf.links %}
+                        <input type="url" class="form-input" name="file_link" value="{{ link }}" placeholder="Enter link">
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn-primary" onclick="addLinkField()" style="margin-top: 0.5rem;">
+                        Add Another Link
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Upload New PDF (optional):</label>
+                    <div class="file-upload-wrapper" id="drop-zone" onclick="document.getElementById('pdf_file').click()">
+                        <span class="file-upload-text">Click to select a PDF file or drag and drop here</span>
+                        <label for="pdf_file" class="file-label">Choose File</label>
+                        <input type="file" class="file-input" id="pdf_file" name="pdf_file" accept="application/pdf" onchange="updateFileName(this)">
+                        <div id="file-name-display" class="selected-file"></div>
+                    </div>
+                    {% if pdf.file_id %}
+                    <div class="current-file">
+                        Current file: <a href="/download/{{ pdf.file_id }}">Download</a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <div class="form-checkbox">
+                        <input type="checkbox" id="is_global" name="is_global" {{ 'checked' if pdf.is_public else '' }}>
+                        <label for="is_public">Make this file public (anyone with the link can view it)</label>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+            <a href="/" class="back-link">← Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+    function addLinkField() {
+        const container = document.getElementById('link-container');
+        const input = document.createElement('input');
+        input.type = 'url';
+        input.className = 'form-input';
+        input.name = 'file_link';   
+        // Was 'pdf_link'
+        input.placeholder = 'Enter link';
+        container.appendChild(input);
+    }
+    
+    function updateFileName(input) {
+        const fileNameDisplay = document.getElementById('file-name-display');
+        if (input.files && input.files[0]) {
+            fileNameDisplay.textContent = 'Selected file: ' + input.files[0].name;
+        } else {
+            fileNameDisplay.textContent = '';
+        }
+    }
+    
+    // Setup drag and drop functionality
+    const dropZone = document.getElementById('drop-zone');
+    
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.add('dragover');
+    });
+    
+    dropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('dragover');
+    });
+    
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('dragover');
+        
+        const fileInput = document.getElementById('pdf_file');
+        fileInput.files = e.dataTransfer.files;
+        updateFileName(fileInput);
+    });
+    </script>
+</body>
+</html>

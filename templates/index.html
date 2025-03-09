@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FileFlow</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="app-header">
+        <div class="app-logo">
+            <div class="app-logo-icon">🗂️</div>
+            <div class="app-logo-text">FileFlow</div>
+        </div>
+        <div class="auth-buttons">
+            {% if current_user.is_authenticated %}
+                <span class="username">{{ current_user.username }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="btn-primary">Logout</a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn-primary">Login</a>
+                <a href="{{ url_for('auth.register') }}" class="btn-primary">Register</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    <div class="container">
+                
+        <!-- Floating Action Buttons -->
+        <div class="floating-action-buttons">
+            <a href="/upload" class="btn-primary floating-action-btn upload-btn">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path d="M14 13v4h-4v-4H7l5-5 5 5h-3m-9-2h2v4h8v-4h2l-6-6-6 6m12-10v4h-2V5H5v14h14v-8h2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h10l6 6z"/>
+                </svg>
+                <span>Upload File</span>
+            </a>
+            
+            <button class="btn-primary floating-action-btn create-folder-btn" onclick="openFolderModal()">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path d="M20 6h-8l-2-2H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/>
+                </svg>
+                <span>Create Folder</span>
+            </button>
+        </div>
+
+        <!-- Folder Modal -->
+        <div id="folderModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeFolderModal()">&times;</span>
+                <h2>Create New Folder</h2>
+                <form action="/create_folder" method="POST">
+                    <div class="form-group">
+                        <label class="form-label" for="folder_name">Folder Name:</label>
+                        <input type="text" class="form-input" id="folder_name" name="folder_name" 
+                            required maxlength="15">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="description">Description (optional):</label>
+                        <textarea class="form-input" id="description" name="description" 
+                                rows="2" maxlength="15"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="is_global" name="is_global">
+                            <label for="is_global">Make this folder public (anyone with the link can view its contents)</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">Create Folder</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="search-container" style="margin: 2rem 0;">
+            <form id="searchForm" method="GET" action="/">
+                <div class="form-group" style="display: flex; gap: 1rem; align-items: center;">
+                    <select name="folder" class="form-input">
+                        <option value="">All Files</option>
+                        {% for folder in folders %}
+                        <option value="{{ folder._id }}" {{ 'selected' if request.args.get('folder') == folder._id }}>
+                            {{ folder.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        name="search" 
+                        placeholder="Search files by name..." 
+                        value="{{ request.args.get('search', '') }}"
+                        style="flex: 1;"
+                    >
+                    <button type="submit" class="btn-primary">Search</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="folders-preview">
+            <h3>Folders</h3>
+            <div class="folders-grid">
+                {% for folder in folders %}
+                <div class="folder-card">
+                    <div class="folder-actions">
+                        <a href="/?folder={{ folder._id }}" class="folder-main-link">
+                            <svg viewBox="0 0 24 24" width="48" height="48">
+                                <path d="M20 6h-8l-2-2H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/>
+                            </svg>
+                            <div class="folder-details">
+                                <h4>{{ folder.name }}</h4>
+                                <p>{{ folder.description or 'No description' }}</p>
+                            </div>
+                        </a>
+                        <div class="folder-card-actions">
+                            <a href="/edit_folder/{{ folder._id }}" class="icon-edit" title="Edit Folder">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                </svg>
+                            </a>
+                            <form action="/delete_folder/{{ folder._id }}" method="POST" class="icon-form">
+                                <button type="submit" class="icon-delete" title="Delete Folder" 
+                                        onclick="return confirm('Are you sure you want to delete this folder? It must be empty to be deleted.');">
+                                    <svg viewBox="0 0 24 24" width="20" height="20">
+                                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <table class="pdf-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Links</th>
+                    <th>File</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pdf in pdfs %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ pdf.name }}</td>
+                    <td class="description-cell">
+                        {{ pdf.description|default("No description", true)|truncate(40) }}
+                    </td>
+                    <td>
+                        {% if pdf.links %}
+                        <ul class="link-list">
+                            {% for link in pdf.links %}
+                            <li><a href="{{ link }}" target="_blank">{{ link }}</a></li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </td>
+                    <td class="download-column">
+                        {% if pdf.file_id %}
+                        <a href="/download/{{ pdf.file_id }}" class="download-icon">
+                            <svg viewBox="0 0 24 24" width="24" height="24">
+                                <path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/>
+                            </svg>
+                        </a>
+                        {% endif %}
+                    </td>
+                    <td class="action-links">
+                        <div class="action-icons">
+                            <a href="/edit/{{ pdf._id }}" class="icon-edit" title="Edit">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                </svg>
+                            </a>
+                            <form action="/delete/{{ pdf._id }}" method="POST" class="icon-form">
+                                <button type="submit" class="icon-delete" title="Delete">
+                                    <svg viewBox="0 0 24 24" width="20" height="20">
+                                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+    function openFolderModal() {
+        document.getElementById('folderModal').style.display = 'block';
+    }
+
+    function closeFolderModal() {
+        document.getElementById('folderModal').style.display = 'none';
+    }
+    </script>
+</body>
+</html>
