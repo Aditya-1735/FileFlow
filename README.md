@@ -14,7 +14,7 @@ A web application for managing files and links with drag-and-drop functionality.
 3. Run the app: `python app.py`
 
 ## Deployment
-Deployed on Render: [Live Demo](https://fileflow-i69i.onrender.com/)
+Deployed on Render: [Live Demo](https://easy-file-flow.onrender.com/)
 
 ## Files
 - your-project-folder/
