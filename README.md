@@ -18,15 +18,4 @@ Deployed on Render: [Live Demo](https://easy-file-flow.onrender.com/)
 
 ## Files
 - your-project-folder/
-- │
-- ├── app.py
-- ├── requirements.txt
-- ├── runtime.txt
-- ├── start.sh
-- ├── static/
-- │   └── styles.css
-- ├── templates/
-- │   ├── index.html
-- │   ├── upload.html
-- │   └── edit.html
-- └── venv/ (if using a virtual environment)
+
